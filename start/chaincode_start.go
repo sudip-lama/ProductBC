@@ -120,6 +120,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	// Handle different functions
 	if function == "read" {													//read a variable
 		return t.read(stub, args)
+	} else if function == "read_product_index" {
+		return t.read_product_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error
 
@@ -146,7 +148,22 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 
 	return valAsbytes, nil													//send it onward
 }
+//====================================================
 
+//Read Product index
+func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var name, jsonResp string
+	var err error
+
+	valAsbytes, err := stub.GetState(productIndexStr)									//get the var from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	return valAsbytes, nil													//send it onward
+}
+//=====================================================
 // ============================================================================================================================
 // Delete - remove a key/value pair from state
 // ============================================================================================================================

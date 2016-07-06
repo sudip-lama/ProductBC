@@ -155,7 +155,7 @@ func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []st
 	var name, jsonResp string
 	var err error
 
-	valAsbytes, err := stub.GetState(productIndexStr)									//get the var from chaincode state
+	valAsbytes, err := stub.GetState("_productindex")									//get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
 		return nil, errors.New(jsonResp)

@@ -105,7 +105,10 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	} else if function == "set_user_type" {										//change user_type of a product
 		res, err := t.set_user_type(stub, args)
 		return res, err
+	} else if function == "read_product_index" {
+		return t.read_product_index(stub,args);
 	}
+
 	fmt.Println("run did not find func: " + function)						//error
 
 	return nil, errors.New("Received unknown function invocation")
@@ -155,7 +158,7 @@ func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []st
 	var name, jsonResp string
 	var err error
 
-	valAsbytes, err := stub.GetState(productIndexStr)									//get the var from chaincode state
+	valAsbytes, err := stub.GetState("_productindex")									//get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
 		return nil, errors.New(jsonResp)

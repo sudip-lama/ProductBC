@@ -105,7 +105,10 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	} else if function == "set_user_type" {										//change user_type of a product
 		res, err := t.set_user_type(stub, args)
 		return res, err
+	} else if function == "read_product_index" {
+		return t.read_product_index(stub,args);
 	}
+
 	fmt.Println("run did not find func: " + function)						//error
 
 	return nil, errors.New("Received unknown function invocation")

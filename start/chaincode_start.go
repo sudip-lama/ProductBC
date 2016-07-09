@@ -105,7 +105,10 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	} else if function == "set_user_type" {										//change user_type of a product
 		res, err := t.set_user_type(stub, args)
 		return res, err
+	} else if function == "read_product_index" {
+		return t.read_product_index(stub,args);
 	}
+
 	fmt.Println("run did not find func: " + function)						//error
 
 	return nil, errors.New("Received unknown function invocation")
@@ -116,10 +119,12 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 // ============================================================================================================================
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("query is running " + function)
-
+	fmt.Println("Argument " + args[0])
 	// Handle different functions
 	if function == "read" {													//read a variable
 		return t.read(stub, args)
+	} else if function == "read_product_index" {
+		return t.read_product_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error
 
@@ -138,6 +143,7 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 	}
 
 	name = args[0]
+	fmt.Println("Argument " + name)
 	valAsbytes, err := stub.GetState(name)									//get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
@@ -146,7 +152,22 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 
 	return valAsbytes, nil													//send it onward
 }
+//====================================================
 
+//Read Product index
+func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var name, jsonResp string
+	var err error
+
+	valAsbytes, err := stub.GetState("_productindex")									//get the var from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	return valAsbytes, nil													//send it onward
+}
+//=====================================================
 // ============================================================================================================================
 // Delete - remove a key/value pair from state
 // ============================================================================================================================
@@ -257,10 +278,10 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 	user_type := strings.ToLower(args[9])
 
 	str := `{"product_id": "` + args[0] + `", "category": "` + args[1] +
-	 `", "product_description": ` + args[2] + `, "availability_start_date": "` + args[3] +
-	 `, "availability_end_date": ` + args[4] + `, "list_price": "` + strconv.Itoa(list_price) +
-	 `, "currency": ` + args[6] + `, "price_start_date": "` + args[7] +
-	 `, "price_end_date": ` + args[8]+ `, "user_type": "` + user_type +
+	 `", "product_description": "` + args[2] + `", "availability_start_date": "` + args[3] +
+	 `", "availability_end_date": "` + args[4] + `", "list_price": ` + strconv.Itoa(list_price) +
+	 `, "currency": "` + args[6] + `", "price_start_date": "` + args[7] +
+	 `", "price_end_date": "` + args[8]+ `", "user_type": "` + user_type +
 	  `"}`
 	err = stub.PutState(args[0], []byte(str))								//store marble with id as key
 	if err != nil {

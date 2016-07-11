@@ -1,5 +1,4 @@
 
-
 package main
 
 import (
@@ -279,7 +278,7 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 
 	str := `{"product_id": "` + args[0] + `", "category": "` + args[1] +
 	 `", "product_description": "` + args[2] + `", "availability_start_date": "` + args[3] +
-	 `", "availability_end_date": "` + args[4] + `", "list_price": ` + args[5] +
+	 `", "availability_end_date": "` + args[4] + `", "list_price": ` + strconv.FormatFloat(list_price, 'f', -1, 64) +
 	 `, "currency": "` + args[6] + `", "price_start_date": "` + args[7] +
 	 `", "price_end_date": "` + args[8]+ `", "user_type": "` + user_type +
 	  `"}`

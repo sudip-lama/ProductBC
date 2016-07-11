@@ -1,4 +1,33 @@
 
+Skip to content
+This repository
+
+    Pull requests
+    Issues
+    Gist
+
+    @tortuga90
+
+3
+0
+
+    1
+
+sudip-lama/ProductBC
+Code
+Issues 0
+Pull requests 0
+Wiki
+Pulse
+Graphs
+ProductBC/finished/chaincode_finished.go
+3918746 15 minutes ago
+Sudip Lama argument checking
+@mgarciap
+@dshuffma-ibm
+@christo4ferris
+349 lines (293 sloc) 12.8 KB
+
 
 package main
 
@@ -370,3 +399,7 @@ func (t *SimpleChaincode) set_user_type(stub *shim.ChaincodeStub, args []string)
 func makeTimestamp() int64 {
     return time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
 }
+
+    Status API Training Shop Blog About
+
+    © 2016 GitHub, Inc. Terms Privacy Security Contact Help

@@ -25,7 +25,7 @@ type Product struct{
 	Product_Description string `json:"product_description"`
 	Availability_Start_Date string `json:"availability_start_date"`
 	Availability_End_Date string `json:"availability_end_date"`
-	List_Price int `json:"list_price"`
+	List_Price float64 `json:"list_price"`
 	Currency string `json:"currency"`
 	Price_Start_Date string `json:"price_start_date"`
 	Price_End_Date string `json:"price_end_date"`
@@ -268,7 +268,7 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 	if len(args[8]) <= 0 {
  	 return nil, errors.New("9th argument must be a non-empty string")
   }
-	list_price, err := strconv.Atoi(args[5])
+	list_price, err := strconv.ParseFloat(args[5],64)
 	if err != nil {
 		return nil, errors.New("5rd argument must be a numeric string")
 	}
@@ -279,7 +279,7 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 
 	str := `{"product_id": "` + args[0] + `", "category": "` + args[1] +
 	 `", "product_description": "` + args[2] + `", "availability_start_date": "` + args[3] +
-	 `", "availability_end_date": "` + args[4] + `", "list_price": ` + strconv.Itoa(list_price) +
+	 `", "availability_end_date": "` + args[4] + `", "list_price": ` + args[5] +
 	 `, "currency": "` + args[6] + `", "price_start_date": "` + args[7] +
 	 `", "price_end_date": "` + args[8]+ `", "user_type": "` + user_type +
 	  `"}`
@@ -296,14 +296,38 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 	var productIndex []string
 	json.Unmarshal(productsAsBytes, &productIndex)							//un stringify it aka JSON.parse()
 
+	//check if the product_id exist
+	if(!findProduct(productIndex,args[0]) ) {
 	//append
 	productIndex = append(productIndex, args[0])								//add product name to index list
 	fmt.Println("! product index: ", productIndex)
 	jsonAsBytes, _ := json.Marshal(productIndex)
 	err = stub.PutState(productIndexStr, jsonAsBytes)						//store name of product
 
+	if err != nil {
+			fmt.Println("Error creating Product Index");
+			return nil, errors.New("Failed to add product index")
+		}
+
+		fmt.Println("New Product index added")
+	} else {
+	fmt.Println("Modified the existing Product")
+	}
+
+
+
 	fmt.Println("- end init product")
 	return nil, nil
+}
+
+func findProduct(productsIndex []string, product_id string) (bool) {
+
+	for _,value:= range productsIndex {
+		if value == product_id {
+			return true;
+		}
+	}
+	return false;
 }
 
 // ============================================================================================================================

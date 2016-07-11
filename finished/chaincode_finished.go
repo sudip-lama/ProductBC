@@ -1,5 +1,7 @@
 
 
+
+
 package main
 
 import (
@@ -17,6 +19,7 @@ import (
 type SimpleChaincode struct {
 }
 
+
 var productIndexStr = "_productindex"				//name for the key/value that will store a list of all products
 
 type Product struct{
@@ -31,6 +34,26 @@ type Product struct{
 	Price_End_Date string `json:"price_end_date"`
 	User_Type string `json:"user_type"`
 }
+
+// Initializing data types to store Offerings
+
+type Offering struct{
+	Offering_ID string `json:"offering_id"`
+	Offering_Category string `json:"offering_category"`
+	Offering_Description string `json:"offering_description"`
+	Availability_Start_Date string `json:"availability_start_date"`
+	Availability_End_Date string `json:"availability_end_date"`
+	Current_List_Price int `json:"current_list_price"`
+	Currency string `json:"currency"`
+	Price_Start_Date string `json:"price_start_date"`
+	Price_End_Date string `json:"price_end_date"`
+	Product_ID_01 string `json:"product_id_01"`
+	Product_ID_02 string `json:"product_id_02"`
+}
+
+var m = make(map[string]string)
+
+var offeringMap = "offerings_map"
 
 
 
@@ -73,6 +96,13 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	err = stub.PutState(productIndexStr, jsonAsBytes)
 	if err != nil {
 		return nil, err
+	}
+
+	//jsonAsBytes, _ := json.Marshal(empty)								//marshal an emtpy array of strings to clear the index
+	
+	err = stub.PutState(offeringMap,jsonAsBytes)
+	if err != nil{
+		return nil,err
 	}
 
 
@@ -125,6 +155,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		return t.read(stub, args)
 	} else if function == "read_product_index" {
 		return t.read_product_index(stub,args);
+	} else if function == "read_offerings" {
+		return t.read_product_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error
 
@@ -166,6 +198,30 @@ func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []st
 	}
 
 	return valAsbytes, nil													//send it onward
+}
+
+// ============================================================================================================================
+// Query -- Read offerings
+// ============================================================================================================================
+func (t *SimpleChaincode) read_offerings(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var jsonResp string
+	var err error
+
+	offeringsmap, err := stub.GetState(offeringMap)									//get the var from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for offeringsmap\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	if err != nil{
+		jsonResp = "{\"Error\":\"Failed to  " + "" + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	//fmt.Println("The values read are : "+ resp)
+
+
+	return offeringsmap, nil													//send it onward
 }
 //=====================================================
 // ============================================================================================================================
@@ -305,6 +361,85 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 	fmt.Println("- end init product")
 	return nil, nil
 }
+
+
+// ============================================================================================================================
+// Creating a new Offering
+// ============================================================================================================================
+
+func (t *SimpleChaincode) init_offering(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var err error
+
+	
+	if len(args) != 11 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	}
+
+	fmt.Println("- start init marble")
+	if len(args[0]) <= 0 {
+		return nil, errors.New("1st argument must be a non-empty string")
+	}
+	if len(args[1]) <= 0 {
+		return nil, errors.New("2nd argument must be a non-empty string")
+	}
+	if len(args[2]) <= 0 {
+		return nil, errors.New("3rd argument must be a non-empty string")
+	}
+	if len(args[3]) <= 0 {
+		return nil, errors.New("4th argument must be a non-empty string")
+	}
+	if len(args[4]) <= 0 {
+		return nil, errors.New("5th argument must be a non-empty string")
+	}
+	if len(args[5]) <= 0 {
+		return nil, errors.New("6th argument must be a non-empty string")
+	}
+	if len(args[6]) <= 0 {
+		return nil, errors.New("7th argument must be a non-empty string")
+	}
+	if len(args[7]) <= 0 {
+		return nil, errors.New("8th argument must be a non-empty string")
+	}
+	if len(args[8]) <= 0 {
+ 	 return nil, errors.New("9th argument must be a non-empty string")
+  }
+  	if len(args[9]) <= 0 {
+ 	 return nil, errors.New("9th argument must be a non-empty string")
+  }
+  	if len(args[10]) <= 0 {
+ 	 return nil, errors.New("9th argument must be a non-empty string")
+  }
+	list_price, err := strconv.Atoi(args[5])
+	if err != nil {
+		return nil, errors.New("5rd argument must be a numeric string")
+	}
+
+	str := `{"offering_id": "` + args[0] + `", "offering_category": "` + args[1] +
+	 `", "offering_description": "` + args[2] + `", "availability_start_date": "` + args[3] +
+	 `", "availability_end_date": "` + args[4] + `", "current_list_price": ` + strconv.Itoa(list_price) +
+	 `, "currency": "` + args[6] + `", "price_start_date": "` + args[7] +
+	 `", "price_end_date": "` + args[8]+ `", "product_id_01": "` + args[9] +`", "product_id_02": "` + args[10] +
+	  `"}`
+	 fmt.Println("The offering details reeived : "+str)
+
+	 offeringMapAsBytes, err := stub.GetState(offeringMap) 
+
+	 var offeringmap map[string]string
+	 json.Unmarshal(offeringMapAsBytes, &offeringmap)	
+
+	 offeringmap[args[0]] = str
+	 jsonAsBytes, _ := json.Marshal(offeringmap)
+	 err = stub.PutState(offeringMap, jsonAsBytes)
+
+	 if err != nil {
+		return nil, err
+	}
+	fmt.Println("Successfully inserted a new offering!!!")	
+	return nil,nil
+
+}
+
+
 
 // ============================================================================================================================
 // Set User type Permission on Product

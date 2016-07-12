@@ -115,8 +115,11 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	// Handle different functions
 	if function == "init" {													//initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
-	} else if function == "delete" {										//deletes an entity from its state
-		res, err := t.Delete(stub, args)
+	} else if function == "delete_product" {										//deletes an entity from its state
+		res, err := t.delete_product(stub, args)
+		return res, err
+	} else if function == "delete_offering" {										//deletes an entity from its state
+		res, err := t.delete_offering(stub, args)
 		return res, err
 	} else if function == "write" {											//writes a value to the chaincode state
 		return t.Write(stub, args)
@@ -213,7 +216,7 @@ func (t *SimpleChaincode) read_offering_index(stub *shim.ChaincodeStub, args []s
 // ============================================================================================================================
 // Delete - remove a key/value pair from state
 // ============================================================================================================================
-func (t *SimpleChaincode) Delete(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) delete_product(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
@@ -248,6 +251,46 @@ func (t *SimpleChaincode) Delete(stub *shim.ChaincodeStub, args []string) ([]byt
 	err = stub.PutState(productIndexStr, jsonAsBytes)
 	return nil, nil
 }
+
+//=====================================================
+// ============================================================================================================================
+// Delete an offering
+// ============================================================================================================================
+func (t *SimpleChaincode) delete_offering(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	}
+
+	name := args[0]
+	err := stub.DelState(name)													
+	if err != nil {
+		return nil, errors.New("Failed to delete state")
+	}
+
+	//get the offering index
+	offeringsAsBytes, err := stub.GetState(offeringIndexStr)
+	if err != nil {
+		return nil, errors.New("Failed to get offering index")
+	}
+	var offeringIndex []string
+	json.Unmarshal(offeringsAsBytes, &offeringIndex)								
+
+	//remove offering from index
+	for i,val := range offeringIndex{
+		fmt.Println(strconv.Itoa(i) + " - looking at " + val + " for " + name)
+		if val == name{															
+			offeringIndex = append(offeringIndex[:i], offeringIndex[i+1:]...)			
+			for x:= range offeringIndex{											
+				fmt.Println(string(x) + " - " + offeringIndex[x])
+			}
+			break
+		}
+	}
+	jsonAsBytes, _ := json.Marshal(offeringIndex)									
+	err = stub.PutState(offeringIndexStr, jsonAsBytes)
+	return nil, nil
+}
+
 
 
 
@@ -426,13 +469,14 @@ func (t *SimpleChaincode) init_offering(stub *shim.ChaincodeStub, args []string)
 		return nil, errors.New("5rd argument must be a numeric string")
 	}
 
+
 	str := `{"offering_id": "` + args[0] + `", "offering_category": "` + args[1] +
 	 `", "offering_description": "` + args[2] + `", "availability_start_date": "` + args[3] +
 	 `", "availability_end_date": "` + args[4] + `", "current_list_price": ` + strconv.FormatFloat(list_price, 'f', -1, 64) +
 	 `, "currency": "` + args[6] + `", "price_start_date": "` + args[7] +
 	 `", "price_end_date": "` + args[8]+ `", "product_id_01": "` + args[9] +`", "product_id_02": "` + args[10] +
 	  `"}`
-	err = stub.PutState(args[0], []byte(str))								//store marble with id as key
+	err = stub.PutState(args[0], []byte(str))								
 	if err != nil {
 		return nil, err
 	}
@@ -443,15 +487,15 @@ func (t *SimpleChaincode) init_offering(stub *shim.ChaincodeStub, args []string)
 		return nil, errors.New("Failed to get offering index")
 	}
 	var offeringIndex []string
-	json.Unmarshal(offeringsAsBytes, &offeringIndex)							//un stringify it aka JSON.parse()
+	json.Unmarshal(offeringsAsBytes, &offeringIndex)							
 
 	//check if the offering_id exist
 	if(!findOffering(offeringIndex,args[0]) ) {
 	//append
-	offeringIndex = append(offeringIndex, args[0])								//add product name to index list
+	offeringIndex = append(offeringIndex, args[0])								
 	fmt.Println("! offering index: ", offeringIndex)
 	jsonAsBytes, _ := json.Marshal(offeringIndex)
-	err = stub.PutState(offeringIndexStr, jsonAsBytes)						//store name of product
+	err = stub.PutState(offeringIndexStr, jsonAsBytes)					
 
 	if err != nil {
 			fmt.Println("Error creating offering Index");

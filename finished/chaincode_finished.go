@@ -37,7 +37,7 @@ type Offering struct{
 	Offering_Description string `json:"offering_description"`
 	Availability_Start_Date string `json:"availability_start_date"`
 	Availability_End_Date string `json:"availability_end_date"`
-	Current_List_Price int `json:"current_list_price"`
+	Current_List_Price float64 `json:"current_list_price"`
 	Currency string `json:"currency"`
 	Price_Start_Date string `json:"price_start_date"`
 	Price_End_Date string `json:"price_end_date"`

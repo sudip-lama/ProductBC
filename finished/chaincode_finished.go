@@ -31,6 +31,20 @@ type Product struct{
 	User_Type string `json:"user_type"`
 }
 
+type Offering struct{
+	Offering_ID string `json:"offering_id"`
+	Offering_Category string `json:"offering_category"`
+	Offering_Description string `json:"offering_description"`
+	Availability_Start_Date string `json:"availability_start_date"`
+	Availability_End_Date string `json:"availability_end_date"`
+	Current_List_Price int `json:"current_list_price"`
+	Currency string `json:"currency"`
+	Price_Start_Date string `json:"price_start_date"`
+	Price_End_Date string `json:"price_end_date"`
+	Product_ID_01 string `json:"product_id_01"`
+	Product_ID_02 string `json:"product_id_02"`
+}
+var offeringIndexStr = "_offeringindex"
 
 
 
@@ -74,6 +88,13 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 		return nil, err
 	}
 
+	var location []string
+	jsonAsBytesForOffering, _ := json.Marshal(location)								//marshal an emtpy array of strings to clear the index
+	err = stub.PutState(offeringIndexStr, jsonAsBytesForOffering)
+	if err != nil {
+		return nil, err
+	}
+
 
 	return nil, nil
 }
@@ -106,7 +127,11 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return res, err
 	} else if function == "read_product_index" {
 		return t.read_product_index(stub,args);
-	}
+	}else if function == "read_offering_index" {
+		return t.read_offering_index(stub,args);
+	}else if function == "init_offering" {									//create a new product
+		return t.init_offering(stub, args)
+	} 
 
 	fmt.Println("run did not find func: " + function)						//error
 
@@ -124,6 +149,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		return t.read(stub, args)
 	} else if function == "read_product_index" {
 		return t.read_product_index(stub,args);
+	}else if function == "read_offering_index" {
+		return t.read_offering_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error
 
@@ -159,6 +186,22 @@ func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []st
 	var err error
 
 	valAsbytes, err := stub.GetState("_productindex")									//get the var from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	return valAsbytes, nil													//send it onward
+}
+
+//====================================================
+
+//Read Offering index
+func (t *SimpleChaincode) read_offering_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var name, jsonResp string
+	var err error
+
+	valAsbytes, err := stub.GetState("_offeringindex")									//get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
 		return nil, errors.New(jsonResp)
@@ -205,6 +248,8 @@ func (t *SimpleChaincode) Delete(stub *shim.ChaincodeStub, args []string) ([]byt
 	err = stub.PutState(productIndexStr, jsonAsBytes)
 	return nil, nil
 }
+
+
 
 // ============================================================================================================================
 // Write - write variable into chaincode state
@@ -329,6 +374,110 @@ func findProduct(productsIndex []string, product_id string) (bool) {
 	return false;
 }
 
+
+// ============================================================================================================================
+// Create a new Offering
+// ============================================================================================================================
+func (t *SimpleChaincode) init_offering(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var err error
+
+	//   0       1       2     3
+	// "asdf", "blue", "35", "bob"
+	if len(args) != 11 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	}
+
+	fmt.Println("- start init marble")
+	if len(args[0]) <= 0 {
+		return nil, errors.New("1st argument must be a non-empty string")
+	}
+	if len(args[1]) <= 0 {
+		return nil, errors.New("2nd argument must be a non-empty string")
+	}
+	if len(args[2]) <= 0 {
+		return nil, errors.New("3rd argument must be a non-empty string")
+	}
+	if len(args[3]) <= 0 {
+		return nil, errors.New("4th argument must be a non-empty string")
+	}
+	if len(args[4]) <= 0 {
+		return nil, errors.New("5th argument must be a non-empty string")
+	}
+	if len(args[5]) <= 0 {
+		return nil, errors.New("6th argument must be a non-empty string")
+	}
+	if len(args[6]) <= 0 {
+		return nil, errors.New("7th argument must be a non-empty string")
+	}
+	if len(args[7]) <= 0 {
+		return nil, errors.New("8th argument must be a non-empty string")
+	}
+	if len(args[8]) <= 0 {
+ 	 return nil, errors.New("9th argument must be a non-empty string")
+  }
+  	if len(args[9]) <= 0 {
+ 	 return nil, errors.New("10th argument must be a non-empty string")
+  }
+  	if len(args[10]) <= 0 {
+ 	 return nil, errors.New("11th argument must be a non-empty string")
+  }
+	list_price, err := strconv.ParseFloat(args[5],64)
+	if err != nil {
+		return nil, errors.New("5rd argument must be a numeric string")
+	}
+
+	str := `{"offering_id": "` + args[0] + `", "offering_category": "` + args[1] +
+	 `", "offering_description": "` + args[2] + `", "availability_start_date": "` + args[3] +
+	 `", "availability_end_date": "` + args[4] + `", "current_list_price": ` + strconv.FormatFloat(list_price, 'f', -1, 64) +
+	 `, "currency": "` + args[6] + `", "price_start_date": "` + args[7] +
+	 `", "price_end_date": "` + args[8]+ `", "product_id_01": "` + args[9] +`", "product_id_02": "` + args[10] +
+	  `"}`
+	err = stub.PutState(args[0], []byte(str))								//store marble with id as key
+	if err != nil {
+		return nil, err
+	}
+
+	//get the offering index
+	offeringsAsBytes, err := stub.GetState(offeringIndexStr)
+	if err != nil {
+		return nil, errors.New("Failed to get offering index")
+	}
+	var offeringIndex []string
+	json.Unmarshal(offeringsAsBytes, &offeringIndex)							//un stringify it aka JSON.parse()
+
+	//check if the offering_id exist
+	if(!findOffering(offeringIndex,args[0]) ) {
+	//append
+	offeringIndex = append(offeringIndex, args[0])								//add product name to index list
+	fmt.Println("! offering index: ", offeringIndex)
+	jsonAsBytes, _ := json.Marshal(offeringIndex)
+	err = stub.PutState(offeringIndexStr, jsonAsBytes)						//store name of product
+
+	if err != nil {
+			fmt.Println("Error creating offering Index");
+			return nil, errors.New("Failed to add offering index")
+		}
+
+		fmt.Println("New offering index added")
+	} else {
+	fmt.Println("Modified the existing offering")
+	}
+
+
+
+	fmt.Println("- end init offering")
+	return nil, nil
+}
+
+func findOffering(offeringsIndex []string, offering_id string) (bool) {
+
+	for _,value:= range offeringsIndex {
+		if value == offering_id {
+			return true;
+		}
+	}
+	return false;
+}
 // ============================================================================================================================
 // Set User type Permission on Product
 // ============================================================================================================================

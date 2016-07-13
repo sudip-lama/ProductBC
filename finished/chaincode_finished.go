@@ -130,9 +130,9 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return res, err
 	} else if function == "read_product_index" {
 		return t.read_product_index(stub,args);
-	}else if function == "read_offering_index" {
+	} else if function == "read_offering_index" {
 		return t.read_offering_index(stub,args);
-	}else if function == "init_offering" {									//create a new product
+	} else if function == "init_offering" {									//create a new product
 		return t.init_offering(stub, args)
 	} 
 
@@ -152,7 +152,7 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		return t.read(stub, args)
 	} else if function == "read_product_index" {
 		return t.read_product_index(stub,args);
-	}else if function == "read_offering_index" {
+	} else if function == "read_offering_index" {
 		return t.read_offering_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error

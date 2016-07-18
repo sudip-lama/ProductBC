@@ -84,6 +84,17 @@ type Contract struct{
 
 var contractIndexStr="_contractindex";
 
+
+type Client struct{
+	Client_ID string `json:"client_id"`
+	Last_Name string `json:"last_name"`
+	First_Name string `json:"first_name"`
+	Company string `json:"company"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Last_Modified string `json:"last_modified"`
+}
+var clientIndexStr = "_clientindex"
 // ============================================================================================================================
 // Main
 // ============================================================================================================================
@@ -256,7 +267,7 @@ func (t *SimpleChaincode) read_offering_index(stub *shim.ChaincodeStub, args []s
 }
 
 
-//Reaing Contract index
+//Reading Contract index
 func (t *SimpleChaincode) read_contract_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var name, jsonResp string
 	var err error
@@ -270,6 +281,19 @@ func (t *SimpleChaincode) read_contract_index(stub *shim.ChaincodeStub, args []s
 	return valAsbytes, nil													//send it onward
 }
 
+//Reading Client index
+func (t *SimpleChaincode) read_client_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var name, jsonResp string
+	var err error
+
+	valAsbytes, err := stub.GetState("_clientindex")									//get the var from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	return valAsbytes, nil													//send it onward
+}
 
 // ============================================================================================================================
 // Delete - remove a key/value pair from Product
@@ -395,6 +419,44 @@ func (t *SimpleChaincode) delete_contract(stub *shim.ChaincodeStub, args []strin
 }
 
 
+// Delete an Client
+// ============================================================================================================================
+func (t *SimpleChaincode) delete_client(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	}
+
+	name := args[0]
+	err := stub.DelState(name)
+	if err != nil {
+		return nil, errors.New("Failed to delete state")
+	}
+
+	//get all the client index
+	clientsAsBytes, err := stub.GetState(clientIndexStr)
+	if err != nil {
+		return nil, errors.New("Failed to get Contract index")
+	}
+	var clientIndex []string
+	json.Unmarshal(clientsAsBytes, &clientIndex)
+
+	//remove client from index
+	for i,val := range clientIndex{
+		//fmt.Println(strconv.Itoa(i) + " - looking at " + val + " for " + name)
+		if val == name{
+			clientIndex = append(clientIndex[:i], clientIndex[i+1:]...)
+			for x:= range clientIndex{
+				fmt.Println(string(x) + " - " + clientIndex[x])
+			}
+			break
+		}
+	}
+	jsonAsBytes, _ := json.Marshal(clientIndex)
+	err = stub.PutState(clientIndexStr, jsonAsBytes)
+	return nil, nil
+}
+
+
 
 // ============================================================================================================================
 // Write - write variable into chaincode state
@@ -429,7 +491,7 @@ func (t *SimpleChaincode) init_product(stub *shim.ChaincodeStub, args []string) 
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
 
-	fmt.Println("- start init marble")
+	fmt.Println("- start init product")
 	if len(args[0]) <= 0 {
 		return nil, errors.New("1st argument must be a non-empty string")
 	}
@@ -755,6 +817,76 @@ func find_id_in_index(indexList []string, id string) (bool) {
 	}
 	return false;
 }
+//Adding Client
+func (t *SimpleChaincode) init_client(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var err error
+
+	if len(args) != 7 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	}
+
+	fmt.Println("- start init product")
+	if len(args[0]) <= 0 {
+		return nil, errors.New("1st argument must be a non-empty string")
+	}
+	if len(args[1]) <= 0 {
+		return nil, errors.New("2nd argument must be a non-empty string")
+	}
+	if len(args[2]) <= 0 {
+		return nil, errors.New("3rd argument must be a non-empty string")
+	}
+	if len(args[3]) <= 0 {
+		return nil, errors.New("4th argument must be a non-empty string")
+	}
+	if len(args[4]) <= 0 {
+		return nil, errors.New("5th argument must be a non-empty string")
+	}
+	if len(args[5]) <= 0 {
+		return nil, errors.New("6th argument must be a non-empty string")
+	}
+	if len(args[6]) <= 0 {
+		return nil, errors.New("7th argument must be a non-empty string")
+	}
+
+
+	str := `{"client_id": "` + args[0] + `", "last_name": "` + args[1] +
+	 `", "first_name": "` + args[2] + `", "company": "` + args[3] +
+	 `", "username": "` + args[4] + `", "password": ` +  args[5] +
+	 `, "last_modified": "`+  args[6]  +  `"}`
+	err = stub.PutState(args[0], []byte(str))
+	if err != nil {
+		return nil, err
+	}
+
+	//get the client index
+	clientsAsBytes, err := stub.GetState(clientIndexStr)
+	if err != nil {
+		return nil, errors.New("Failed to get client index")
+	}
+	var clientIndex []string
+	json.Unmarshal(clientsAsBytes, &clientIndex)
+	//check if the client_id exist
+	if !find_id_in_index(clientIndex,args[0])  {
+	//append
+	clientIndex = append(clientIndex, args[0])
+	fmt.Println("! client index: ", clientIndex)
+	jsonAsBytes, _ := json.Marshal(clientIndex)
+	err = stub.PutState(clientIndexStr, jsonAsBytes)						//store id of client
+
+	if err != nil {
+			fmt.Println("Error creating Client Index");
+			return nil, errors.New("Failed to add client index")
+		}
+
+		fmt.Println("New Client index added")
+	} else {
+	fmt.Println("Modified the existing Client")
+	}
+
+	fmt.Println("- end init client")
+	return nil, nil
+}
+
 
 // ============================================================================================================================
 // Set User type Permission on Product

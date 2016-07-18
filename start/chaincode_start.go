@@ -172,6 +172,7 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		res, err := t.set_user_type(stub, args)
 		return res, err
 	}
+
 	fmt.Println("run did not find func: " + function)						//error
 
 	return nil, errors.New("Received unknown function invocation")
@@ -237,6 +238,9 @@ func (t *SimpleChaincode) read_product_index(stub *shim.ChaincodeStub, args []st
 
 //====================================================
 
+//====================================================
+
+
 //Read Offering index
 func (t *SimpleChaincode) read_offering_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var name, jsonResp string
@@ -250,6 +254,7 @@ func (t *SimpleChaincode) read_offering_index(stub *shim.ChaincodeStub, args []s
 
 	return valAsbytes, nil													//send it onward
 }
+
 
 //Reaing Contract index
 func (t *SimpleChaincode) read_contract_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
@@ -265,7 +270,7 @@ func (t *SimpleChaincode) read_contract_index(stub *shim.ChaincodeStub, args []s
 	return valAsbytes, nil													//send it onward
 }
 
-//=====================================================
+
 // ============================================================================================================================
 // Delete - remove a key/value pair from Product
 // ============================================================================================================================
@@ -316,6 +321,7 @@ func (t *SimpleChaincode) delete_offering(stub *shim.ChaincodeStub, args []strin
 
 	name := args[0]
 	err := stub.DelState(name)
+
 	if err != nil {
 		return nil, errors.New("Failed to delete state")
 	}
@@ -328,21 +334,26 @@ func (t *SimpleChaincode) delete_offering(stub *shim.ChaincodeStub, args []strin
 	var offeringIndex []string
 	json.Unmarshal(offeringsAsBytes, &offeringIndex)
 
+
 	//remove offering from index
 	for i,val := range offeringIndex{
 		fmt.Println(strconv.Itoa(i) + " - looking at " + val + " for " + name)
 		if val == name{
 			offeringIndex = append(offeringIndex[:i], offeringIndex[i+1:]...)
 			for x:= range offeringIndex{
+
 				fmt.Println(string(x) + " - " + offeringIndex[x])
 			}
 			break
 		}
 	}
+
 	jsonAsBytes, _ := json.Marshal(offeringIndex)
+
 	err = stub.PutState(offeringIndexStr, jsonAsBytes)
 	return nil, nil
 }
+
 
 //=====================================================
 // ============================================================================================================================
@@ -568,6 +579,7 @@ func (t *SimpleChaincode) init_offering(stub *shim.ChaincodeStub, args []string)
 	 `", "price_end_date": "` + args[8]+ `", "product_id_01": "` + args[9] +`", "product_id_02": "` + args[10] +
 	  `"}`
 	err = stub.PutState(args[0], []byte(str))
+
 	if err != nil {
 		return nil, err
 	}
@@ -583,10 +595,12 @@ func (t *SimpleChaincode) init_offering(stub *shim.ChaincodeStub, args []string)
 	//check if the offering_id exist
 	if(!findOffering(offeringIndex,args[0]) ) {
 	//append
+
 	offeringIndex = append(offeringIndex, args[0])
 	fmt.Println("! offering index: ", offeringIndex)
 	jsonAsBytes, _ := json.Marshal(offeringIndex)
 	err = stub.PutState(offeringIndexStr, jsonAsBytes)
+
 
 	if err != nil {
 			fmt.Println("Error creating offering Index");
@@ -613,6 +627,7 @@ func findOffering(offeringsIndex []string, offering_id string) (bool) {
 	}
 	return false;
 }
+
 
 
 // ============================================================================================================================
@@ -740,6 +755,7 @@ func find_id_in_index(indexList []string, id string) (bool) {
 	}
 	return false;
 }
+
 // ============================================================================================================================
 // Set User type Permission on Product
 // ============================================================================================================================

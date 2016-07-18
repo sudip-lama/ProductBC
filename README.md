@@ -1,3 +1,7 @@
+#Demo implementation of Chaincode for Product data
+This project create the blockchain code for create, read,modifiy and delete the Product data in blockchain
+
+
 # How to write chaincode
 This tutorial demonstrates the basic building blocks and functionality necessary to build an elementary [Hyperledger fabric](https://github.com/hyperledger/fabric) chaincode application. You will be incrementally building up to a working chaincode that will be able to create generic assets.
 Then, you will interact with the chaincode by using the network's API. After reading and completing this tutorial, you should be able to explicitly answer the following questions:

@@ -171,6 +171,9 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	} else if function == "delete_contract" {
 			res, err := t.delete_contract(stub, args)
 			return res, err
+	} else if function == "delete_client" {
+			res, err := t.delete_client(stub, args)
+			return res, err
 	} else if function == "write" {											//writes a value to the chaincode state
 		return t.Write(stub, args)
 	} else if function == "init_product" {									//create a new product
@@ -179,6 +182,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 			return t.init_offering(stub, args)
 	} else if function == "init_contract" {									//create a new product
 			return t.init_contract(stub, args)
+	} else if function == "init_client" {
+			return t.init_client(stub, args)
 	} else if function == "set_user_type" {										//change user_type of a product
 		res, err := t.set_user_type(stub, args)
 		return res, err
@@ -204,6 +209,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		return t.read_offering_index(stub,args);
 	}else if function == "read_contract_index" {
 		return t.read_contract_index(stub,args);
+	}else if function == "read_client_index" {
+		return t.read_client_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error
 

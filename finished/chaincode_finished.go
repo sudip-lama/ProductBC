@@ -766,8 +766,8 @@ func (t *SimpleChaincode) init_contract(stub *shim.ChaincodeStub, args []string)
 
 	str := `{"contract_id": "` + args[0] + `", "client_id": "` + args[1] +
 	 `", "offering_id_1": "` + args[2] + `", "offering_id_2": "` + args[3] +
-	 `", "offering_id_3": "` + args[4] + `", "offering_id_4": ` + args[5] +
-	 `, "flat_off_rate_1": "` + strconv.FormatFloat(flat_off_rate_1, 'f', -1, 64) + `", "flat_off_rate_2": "` + strconv.FormatFloat(flat_off_rate_2, 'f', -1, 64) +
+	 `", "offering_id_3": "` + args[4] + `", "offering_id_4": "` + args[5] +
+	 `", "flat_off_rate_1": "` + strconv.FormatFloat(flat_off_rate_1, 'f', -1, 64) + `", "flat_off_rate_2": "` + strconv.FormatFloat(flat_off_rate_2, 'f', -1, 64) +
 	 `", "flat_off_rate_3": "` + strconv.FormatFloat(flat_off_rate_3, 'f', -1, 64)+ `", "flat_off_rate_4": "` + strconv.FormatFloat(flat_off_rate_4, 'f', -1, 64) +`", "flat_prod_rate_1": "` + strconv.FormatFloat(flat_prod_rate_1, 'f', -1, 64) +
 	 `", "flat_prod_rate_2": "` + strconv.FormatFloat(flat_prod_rate_2, 'f', -1, 64)+ `", "flat_prod_rate_3": "` + strconv.FormatFloat(flat_prod_rate_3, 'f', -1, 64) +`", "flat_prod_rate_4": "` + strconv.FormatFloat(flat_prod_rate_4, 'f', -1, 64) +
 	 `", "flat_prod_rate_5": "` + strconv.FormatFloat(flat_prod_rate_5, 'f', -1, 64)+ `", "flat_prod_rate_6": "` + strconv.FormatFloat(flat_prod_rate_6, 'f', -1, 64) +`", "product_id_1": "` + args[16] +

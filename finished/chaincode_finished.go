@@ -95,6 +95,15 @@ type Client struct{
 	Last_Modified string `json:"last_modified"`
 }
 var clientIndexStr = "_clientindex"
+
+type newOffering struct{
+	Client_ID string `json:"client_id"`
+	Product_ID_1 string `json:"product_id_1"`
+	Product_ID_2 string `json:"product_id_2"`
+	Flag float64  `json:"flag"`
+}
+var newOfferingIndexStr="_newOfferingIndex";
+
 // ============================================================================================================================
 // Main
 // ============================================================================================================================
@@ -175,10 +184,12 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.Write(stub, args)
 	} else if function == "init_product" {									//create a new product
 		return t.init_product(stub, args)
-	}else if function == "init_offering" {									//create a new product
+	} else if function == "init_offering" {									//create a new product
 			return t.init_offering(stub, args)
 	} else if function == "init_contract" {									//create a new product
 			return t.init_contract(stub, args)
+	} else if function == "init_newOffering" {									//request new offering
+			return t.init_newOffering(stub, args)
 	} else if function == "set_user_type" {										//change user_type of a product
 		res, err := t.set_user_type(stub, args)
 		return res, err
@@ -204,6 +215,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		return t.read_offering_index(stub,args);
 	}else if function == "read_contract_index" {
 		return t.read_contract_index(stub,args);
+	} else if function == "read_newOffering_index" {
+		return t.read_newOffering_index(stub,args);
 	}
 	fmt.Println("query did not find func: " + function)						//error
 
@@ -295,6 +308,20 @@ func (t *SimpleChaincode) read_client_index(stub *shim.ChaincodeStub, args []str
 	return valAsbytes, nil													//send it onward
 }
 
+// Read any new offerings that have been requested by the Client
+//Reading Client index
+func (t *SimpleChaincode) read_newOffering_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var name, jsonResp string
+	var err error
+
+	valAsbytes, err := stub.GetState("_newOfferingIndex")									//get the var from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	return valAsbytes, nil													//send it onward
+}
 // ============================================================================================================================
 // Delete - remove a key/value pair from Product
 // ============================================================================================================================
@@ -808,6 +835,7 @@ func (t *SimpleChaincode) init_contract(stub *shim.ChaincodeStub, args []string)
 	return nil, nil
 }
 
+// function to find a given "id" in the corresponding index
 func find_id_in_index(indexList []string, id string) (bool) {
 
 	for _,value:= range indexList {
@@ -817,6 +845,40 @@ func find_id_in_index(indexList []string, id string) (bool) {
 	}
 	return false;
 }
+
+/********************************************************************************************************************
+		Get individual client data
+*******************************************************************************************************************/
+// func (t *SimpleChaincode) get_client_data(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+// 	if len(args) != 1 {
+// 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+// 	}
+//
+// 	name := args[0]
+// 	// err := stub.DelState(name)
+// 	// if err != nil {
+// 	// 	return nil, errors.New("Failed to delete state")
+// 	// }
+//
+// 	//get all the contract index
+// 	contractsAsBytes, err := stub.GetState(contractIndexStr)
+// 	if err != nil {
+// 		return nil, errors.New("Failed to get Contract index")
+// 	}
+// 	var contractIndex []string
+// 	json.Unmarshal(contractsAsBytes, &contractIndex)
+//
+// 	// Search all contracts for the particular client_id
+// 	for _,value:= range contractIndex {
+// 		if value.Client_ID == name {
+// 			// add this contract's data
+// 		}
+// 	}
+// 	resultAsBytes, _ := json.Marshal(res)
+// 	//err = stub.PutState(contractIndexStr, jsonAsBytes)
+// 	return resultAsBytes, nil
+// }
+
 //Adding Client
 func (t *SimpleChaincode) init_client(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
@@ -887,6 +949,63 @@ func (t *SimpleChaincode) init_client(stub *shim.ChaincodeStub, args []string) (
 	return nil, nil
 }
 
+// Init offering when client requests a new offering.
+func (t *SimpleChaincode) init_newOffering(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var err error
+
+	// client_id, Product_id_1, product_id_2,flag
+	if len(args) != 4 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 4")
+	}
+
+	fmt.Println("- start init product")
+	if len(args[0]) <= 0 {
+		return nil, errors.New("1st argument must be a non-empty string")
+	}
+	if len(args[1]) <= 0 {
+		return nil, errors.New("2nd argument must be a non-empty string")
+	}
+	if len(args[2]) <= 0 {
+		return nil, errors.New("3rd argument must be a non-empty string")
+	}
+	if len(args[2]) <= 0 {
+		return nil, errors.New("3rd argument must be a non-empty string")
+	}
+	str := `{"client_id": "` + args[0] + `", "product_id_1": "` + args[1] + `", "product_id_2": "` + args[2] +
+	 `", "flag": "`+  args[3]  +  `"}`
+	err = stub.PutState(args[0], []byte(str))
+	if err != nil {
+		return nil, err
+	}
+
+	//get the client index
+	newOfferingAsBytes, err := stub.GetState(newOfferingIndexStr)
+	if err != nil {
+		return nil, errors.New("Failed to get client index")
+	}
+	var newOfferingIndex []string
+	json.Unmarshal(newOfferingAsBytes, &newOfferingIndex)
+	//check if the client_id exist
+	if !find_id_in_index(newOfferingIndex,args[0])  {
+	//append
+	newOfferingIndex = append(newOfferingIndex, args[0])
+	fmt.Println("! client index: ", newOfferingIndex)
+	jsonAsBytes, _ := json.Marshal(newOfferingIndex)
+	err = stub.PutState(newOfferingIndexStr, jsonAsBytes)						//store id of client
+
+	if err != nil {
+			fmt.Println("Error creating Client Index");
+			return nil, errors.New("Failed to add client index")
+		}
+
+		fmt.Println("New offering request index added")
+	} else {
+	fmt.Println("Modified the existing offering request")
+	}
+
+	fmt.Println("- end init newOffering")
+	return nil, nil
+}
 
 // ============================================================================================================================
 // Set User type Permission on Product
@@ -924,6 +1043,7 @@ func (t *SimpleChaincode) set_user_type(stub *shim.ChaincodeStub, args []string)
 
 
 //End of Contract Blockchain
+
 
 
 // ============================================================================================================================

@@ -100,7 +100,7 @@ type newOffering struct{
 	Client_ID string `json:"client_id"`
 	Product_ID_1 string `json:"product_id_1"`
 	Product_ID_2 string `json:"product_id_2"`
-	Flag float64  `json:"flag"`
+	Flag string  `json:"flag"`
 }
 var newOfferingIndexStr="_newOfferingIndex";
 

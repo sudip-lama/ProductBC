@@ -96,13 +96,13 @@ type Client struct{
 }
 var clientIndexStr = "_clientindex"
 
-type newOffering struct{
+type pendingOffering struct{
 	Client_ID string `json:"client_id"`
 	Product_ID_1 string `json:"product_id_1"`
 	Product_ID_2 string `json:"product_id_2"`
 	Flag string  `json:"flag"`
 }
-var newOfferingIndexStr="_newOfferingIndex";
+var pendingOfferingIndexStr="_pendingOfferingIndex";
 
 // ============================================================================================================================
 // Main
@@ -192,8 +192,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	} else if function == "init_contract" {									//create a new product
 			return t.init_contract(stub, args)
 
-	} else if function == "init_newOffering" {									//request new offering
-			return t.init_newOffering(stub, args)
+	} else if function == "init_pendingOffering" {									//request new offering
+			return t.init_pendingOffering(stub, args)
 
 	} else if function == "init_client" {
 			return t.init_client(stub, args)
@@ -224,8 +224,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	}else if function == "read_contract_index" {
 		return t.read_contract_index(stub,args);
 
-	} else if function == "read_newOffering_index" {
-		return t.read_newOffering_index(stub,args);
+	} else if function == "read_pendingOffering_index" {
+		return t.read_pendingOffering_index(stub,args);
 
 	}else if function == "read_client_index" {
 		return t.read_client_index(stub,args);
@@ -323,11 +323,11 @@ func (t *SimpleChaincode) read_client_index(stub *shim.ChaincodeStub, args []str
 
 // Read any new offerings that have been requested by the Client
 //Reading Client index
-func (t *SimpleChaincode) read_newOffering_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) read_pendingOffering_index(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var name, jsonResp string
 	var err error
 
-	valAsbytes, err := stub.GetState("_newOfferingIndex")									//get the var from chaincode state
+	valAsbytes, err := stub.GetState("_pendingOfferingIndex")									//get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
 		return nil, errors.New(jsonResp)
@@ -963,7 +963,7 @@ func (t *SimpleChaincode) init_client(stub *shim.ChaincodeStub, args []string) (
 }
 
 // Init offering when client requests a new offering.
-func (t *SimpleChaincode) init_newOffering(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) init_pendingOffering(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
 
 	// client_id, Product_id_1, product_id_2,flag
@@ -992,19 +992,19 @@ func (t *SimpleChaincode) init_newOffering(stub *shim.ChaincodeStub, args []stri
 	}
 
 	//get the client index
-	newOfferingAsBytes, err := stub.GetState(newOfferingIndexStr)
+	pendingOfferingAsBytes, err := stub.GetState(pendingOfferingIndexStr)
 	if err != nil {
 		return nil, errors.New("Failed to get client index")
 	}
-	var newOfferingIndex []string
-	json.Unmarshal(newOfferingAsBytes, &newOfferingIndex)
+	var pendingOfferingIndex []string
+	json.Unmarshal(pendingOfferingAsBytes, &pendingOfferingIndex)
 	//check if the client_id exist
-	if !find_id_in_index(newOfferingIndex,args[0])  {
+	// if !find_id_in_index(pendingOfferingIndex,args[0])  {
 	//append
-	newOfferingIndex = append(newOfferingIndex, args[0])
-	fmt.Println("! client index: ", newOfferingIndex)
-	jsonAsBytes, _ := json.Marshal(newOfferingIndex)
-	err = stub.PutState(newOfferingIndexStr, jsonAsBytes)						//store id of client
+	pendingOfferingIndex = append(pendingOfferingIndex, args[0])
+	fmt.Println("! client index: ", pendingOfferingIndex)
+	jsonAsBytes, _ := json.Marshal(pendingOfferingIndex)
+	err = stub.PutState(pendingOfferingIndexStr, jsonAsBytes)						//store id of client
 
 	if err != nil {
 			fmt.Println("Error creating Client Index");
@@ -1012,11 +1012,11 @@ func (t *SimpleChaincode) init_newOffering(stub *shim.ChaincodeStub, args []stri
 		}
 
 		fmt.Println("New offering request index added")
-	} else {
-	fmt.Println("Modified the existing offering request")
-	}
+	// } else {
+	// fmt.Println("Modified the existing offering request")
+	// }
 
-	fmt.Println("- end init newOffering")
+	fmt.Println("- end init pendingOffering")
 	return nil, nil
 }
 
